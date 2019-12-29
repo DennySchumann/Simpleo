@@ -6,7 +6,8 @@
   "scripts": {
     "ts": "tsc -w",
     "server": "nodemon ./build/index.js",
-    "start": "tsc && node ./build/index.js",
+    "ts-start": "tsc && node ./build/index.js",
+    "start": "node ./build/index.js",
     "test": "mocha -r ts-node/register src/**/*-test.ts"
   },
   "dependencies": {
