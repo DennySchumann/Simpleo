@@ -28,6 +28,8 @@ class Server {
         mongoose.set("useUnifiedTopology", true);
         mongoose.set("useCreateIndex", true);
         mongoose.set("useFindAndModify", false);
+        console.log("MONGODB_URI type:", typeof process.env.MONGODB_URI);
+        console.log("MONGODB_URI length:", process.env.MONGODB_URI.length);
         mongoose.connect(process.env.MONGODB_URI);
         //server config / middleware
         this.app.use(bodyParser.urlencoded({ extended: false }));
