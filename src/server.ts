@@ -7,7 +7,7 @@ import * as helmet from 'helmet';
 import * as cors from 'cors';
 import * as dotenv from 'dotenv';
 
-import EventRouter from './router/eventsRouter';
+import UserRouter from './router/userRouter';
 
 /**
  * This class create a server, which is used in index
@@ -51,8 +51,7 @@ class Server {
         let router: express.Router = express.Router();
 
         this.app.use('/api/v1', router);
-        router.use('/events', EventRouter);
-
+        router.use('/user', UserRouter);
     }
 }
 

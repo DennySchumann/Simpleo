@@ -8,7 +8,7 @@ const logger = require("morgan");
 const helmet = require("helmet");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const eventsRouter_1 = require("./router/eventsRouter");
+const userRouter_1 = require("./router/userRouter");
 /**
  * This class create a server, which is used in index
  */
@@ -45,7 +45,7 @@ class Server {
     routes() {
         let router = express.Router();
         this.app.use('/api/v1', router);
-        router.use('/events', eventsRouter_1.default);
+        router.use('/user', userRouter_1.default);
     }
 }
 //export
