@@ -1,3 +1,5 @@
+import * as argon2 from 'argon2';
+
 export module Helper {
     /**
      * this function create an object with the params sort and order
@@ -47,5 +49,18 @@ export module Helper {
         delete query.limit;
 
         return area;
+    }
+
+    export function sanitizeUserData(data: Object): Object {
+        const userData = { email_verified: false };
+        return {...data, ...userData};
+    }
+
+    export function hashPassword(passwordPlaintext: string): Promise<string> {
+        return argon2.hash(passwordPlaintext);
+    }
+
+    export function verifyPassword(passwordHash: string, passwordPlaintext: string): Promise<boolean> {
+        return argon2.verify(passwordHash, passwordPlaintext);
     }
 }

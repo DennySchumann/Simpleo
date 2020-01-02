@@ -4,13 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "ts": "tsc -w",
+    "tsw": "tsc -w",
+    "ts": "tsc",
     "server": "nodemon ./build/index.js",
     "ts-start": "tsc && node ./build/index.js",
     "start": "node ./build/index.js",
     "test": "mocha -r ts-node/register src/**/*-test.ts"
   },
   "dependencies": {
+    "argon2": "^0.25.1",
     "body-parser": "^1.18.3",
     "compression": "^1.7.3",
     "cors": "^2.8.4",

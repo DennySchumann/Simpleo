@@ -9,55 +9,63 @@ class UserRouter {
         this.routes();
     }
     /**
-     * Search one user from MongoDB and send it to the Client
+     * Check token and mark email as verified
      *
      * @param req: contains an http request, with an header
      * @param res: return an object or error message for the client
      */
-    getOneUser(req, res) {
-        const _id = req.params._id;
-        user_1.default.findOne({ "_id": _id })
+    verifyEmail(req, res) {
+        const token = req.params.token;
+        const email = req.body.email;
+        user_1.default.findOne({ email })
             .then(data => {
+            // TODO: check token
             res.json({
                 data
             });
-        }).catch(err => {
+        }).catch((err) => {
             if (err.name === 'CastError')
                 res.statusCode = 404;
+            if (err.name === 'MongoError')
+                res.statusCode = 500;
             res.json({
                 err
             });
         });
     }
     /**
-     * Search user from MongoDB
-     * advanced search can be done with specific queries
-     * for example /user?limit=10&sort=tag_sort&order=asc
+     * Authenticate user credentials and send generated JWT to the client
      *
      * @param req: contains an http request, with an header
      * @param res: return an object or error message for the client
      */
-    getUser(req, res) {
-        let sortBy = helper_1.Helper.getSort(req.query);
-        let area = helper_1.Helper.getLimit(req.query);
-        user_1.default.find(req.query)
-            .skip(area.offset)
-            .limit(area.limit)
-            .sort(sortBy)
-            .then(data => {
-            if (data.length == 0) {
-                res.statusCode = 404;
-                throw new Error()
-                    .message = 'Data not found or field do not exist!';
+    userLogin(req, res) {
+        const unauthenticatedCallback = function (err) {
+            if (err) {
+                console.log('Error:', err);
             }
+            res.statusCode = 401;
             res.json({
-                data
+                err: 'Email or password wrong!'
             });
-        }).catch(err => {
-            res.json({
-                err
-            });
-        });
+        };
+        const email = req.body.email;
+        user_1.default.findOne({ email })
+            .then(data => {
+            // @ts-ignore
+            helper_1.Helper.verifyPassword(req.body.password, data.password)
+                .then(success => {
+                if (success) {
+                    res.json({
+                        _id: data._id,
+                        jwt: "Kommt noch."
+                    });
+                }
+                else {
+                    unauthenticatedCallback(null);
+                }
+            }).catch(unauthenticatedCallback);
+        }).catch(unauthenticatedCallback);
     }
     /**
      * create one user object on the MongoDB, with the params at the body
@@ -100,6 +108,7 @@ class UserRouter {
      */
     updateUser(req, res) {
         const _id = req.params._id;
+        // TODO: verify body.password and hash body.new_password if it's present
         user_1.default.findOneAndUpdate({ _id }, req.body)
             .then((data) => {
             res.json({
@@ -137,8 +146,8 @@ class UserRouter {
         });
     }
     routes() {
-        this.router.get('/:_id', this.getOneUser);
-        this.router.get('/', this.getUser);
+        this.router.get('/verify/:token', this.verifyEmail);
+        this.router.post('/login', this.userLogin);
         this.router.post('/', this.createUser);
         this.router.put('/:_id', this.updateUser);
         this.router.delete('/:_id', this.deleteUser);

@@ -1,4 +1,4 @@
-import {Schema, model} from 'mongoose';
+import {Schema, model, HookNextFunction, Document} from 'mongoose';
 
 /**
  * contains the schema for the user
@@ -37,13 +37,13 @@ let user_Schema: Schema = new Schema({
         type: Boolean,
         default: false
     },
-    password_hash: {
+    password: {
         type: String,
         required: true
     },
-    client_key: {
+    token: {
         type: String,
-        required: true
+        default: null
     }
 });
 

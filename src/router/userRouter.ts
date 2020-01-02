@@ -1,4 +1,4 @@
-import {Router, Request, Response, NextFunction} from 'express';
+import {Router, Request, Response} from 'express';
 import User from '../models/user';
 import {Helper} from '../helper/helper';
 
@@ -11,59 +11,63 @@ class UserRouter {
     }
 
     /**
-     * Search one user from MongoDB and send it to the Client
+     * Check token and mark email as verified
      *
      * @param req: contains an http request, with an header
      * @param res: return an object or error message for the client
      */
-    public getOneUser(req: Request, res: Response): void {
-        const _id: String = req.params._id;
+    public verifyEmail(req: Request, res: Response): void {
+        const token: String = req.params.token;
+        const email: String = req.body.email;
 
-        User.findOne({"_id": _id})
+        User.findOne({ email })
             .then(data => {
-
+                // TODO: check token
                 res.json({
                     data
                 });
-            }).catch(err => {
-            if (err.name === 'CastError') res.statusCode = 404;
-            res.json({
-                err
-            })
-        })
+            }).catch((err) => {
+                if (err.name === 'CastError') res.statusCode = 404;
+                if (err.name === 'MongoError') res.statusCode = 500;
+                res.json({
+                    err
+                });
+            });
     }
 
     /**
-     * Search user from MongoDB
-     * advanced search can be done with specific queries
-     * for example /user?limit=10&sort=tag_sort&order=asc
+     * Authenticate user credentials and send generated JWT to the client
      *
      * @param req: contains an http request, with an header
      * @param res: return an object or error message for the client
      */
-    public getUser(req: Request, res: Response): void {
-        let sortBy = Helper.getSort(req.query);
-        let area = Helper.getLimit(req.query);
-
-        User.find(req.query)
-            .skip(area.offset)
-            .limit(area.limit)
-            .sort(sortBy)
-            .then(data => {
-                if (data.length == 0) {
-                    res.statusCode = 404;
-                    throw new Error()
-                        .message = 'Data not found or field do not exist!';
-                }
-
-                res.json({
-                    data
-                });
-            }).catch(err => {
+    public userLogin(req: Request, res: Response): void {
+        const unauthenticatedCallback = function(err) {
+            if(err) {
+                console.log('Error:', err);
+            }
+            res.statusCode = 401;
             res.json({
-                err
-            })
-        })
+                err: 'Email or password wrong!'
+            });
+        };
+        const email: String = req.body.email;
+
+        User.findOne({ email })
+            .then(data => {
+                // @ts-ignore
+                Helper.verifyPassword(req.body.password, data.password)
+                    .then(success => {
+                        if(success) {
+                            res.json({
+                                _id: data._id,
+                                jwt: "Kommt noch."
+                            });
+                        } else {
+                            unauthenticatedCallback(null);
+                        }
+                    }).catch(unauthenticatedCallback);
+            }).catch(unauthenticatedCallback);
     }
     
     /**
@@ -109,6 +113,8 @@ class UserRouter {
     public updateUser(req: Request, res: Response): void {
         const _id: String = req.params._id;
 
+        // TODO: verify body.password and hash body.new_password if it's present
+
         User.findOneAndUpdate({_id}, req.body)
             .then((data) => {
                 res.json({
@@ -146,8 +152,8 @@ class UserRouter {
     }
 
     routes() {
-        this.router.get('/:_id', this.getOneUser);
-        this.router.get('/', this.getUser);
+        this.router.get('/verify/:token', this.verifyEmail);
+        this.router.post('/login', this.userLogin);
         this.router.post('/', this.createUser);
         this.router.put('/:_id', this.updateUser);
         this.router.delete('/:_id', this.deleteUser);

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const argon2 = require("argon2");
 var Helper;
 (function (Helper) {
     /**
@@ -49,4 +50,17 @@ var Helper;
         return area;
     }
     Helper.getLimit = getLimit;
+    function sanitizeUserData(data) {
+        const userData = { email_verified: false };
+        return Object.assign(Object.assign({}, data), userData);
+    }
+    Helper.sanitizeUserData = sanitizeUserData;
+    function hashPassword(passwordPlaintext) {
+        return argon2.hash(passwordPlaintext);
+    }
+    Helper.hashPassword = hashPassword;
+    function verifyPassword(passwordHash, passwordPlaintext) {
+        return argon2.verify(passwordHash, passwordPlaintext);
+    }
+    Helper.verifyPassword = verifyPassword;
 })(Helper = exports.Helper || (exports.Helper = {}));

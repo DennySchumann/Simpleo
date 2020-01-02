@@ -38,13 +38,13 @@ let user_Schema = new mongoose_1.Schema({
         type: Boolean,
         default: false
     },
-    password_hash: {
+    password: {
         type: String,
         required: true
     },
-    client_key: {
+    token: {
         type: String,
-        required: true
+        default: null
     }
 });
 exports.default = mongoose_1.model('user', user_Schema);
